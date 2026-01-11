@@ -1,0 +1,8 @@
+{
+  "name": "Smart Face Attendance System",
+  "description": "Sistem absensi modern menggunakan face-api.js untuk verifikasi wajah lokal dan geofencing untuk pembatasan area absen.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
