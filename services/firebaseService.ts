@@ -1,4 +1,4 @@
-import { initializeApp, getApp, getApps } from "firebase/app";
+import { initializeApp, getApp, getApps } from "@firebase/app";
 import {
   getFirestore,
   collection,
@@ -9,15 +9,26 @@ import {
   query,
   orderBy,
   writeBatch,
-} from "firebase/firestore";
+} from "@firebase/firestore";
 import { User, OfficeConfig, AttendanceLog } from "../types";
+
+// Konfigurasi Firebase Default (Hardcoded as requested)
+export const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyB-Jxk7AxVGrkuxjTY314v3hFuwgtCpjgU",
+  authDomain: "wz-absence.firebaseapp.com",
+  projectId: "wz-absence",
+  storageBucket: "wz-absence.firebasestorage.app",
+  messagingSenderId: "971141848404",
+  appId: "1:971141848404:web:d4325613859eebb435bcc1",
+};
 
 let db: any = null;
 
 export const initFirebase = (config: any) => {
   try {
-    // Gunakan app yang sudah ada jika tersedia untuk menghindari error re-initialization
-    const app = getApps().length === 0 ? initializeApp(config) : getApp();
+    const firebaseConfig = config || DEFAULT_FIREBASE_CONFIG;
+    const app =
+      getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     db = getFirestore(app);
     return true;
   } catch (e) {
@@ -29,8 +40,10 @@ export const initFirebase = (config: any) => {
 const ensureInit = () => {
   if (!db) {
     const savedConfig = localStorage.getItem("FIREBASE_CONFIG");
-    if (savedConfig) initFirebase(JSON.parse(savedConfig));
-    else throw new Error("Firebase not configured");
+    const configToUse = savedConfig
+      ? JSON.parse(savedConfig)
+      : DEFAULT_FIREBASE_CONFIG;
+    initFirebase(configToUse);
   }
 };
 
@@ -46,7 +59,6 @@ export const firebaseService = {
     const snap = await getDocs(collection(db, "users"));
     const batch = writeBatch(db);
 
-    // 1. Identifikasi ID yang harus dihapus
     const newUserIds = new Set(users.map((u) => u.id));
     snap.docs.forEach((docSnap) => {
       if (!newUserIds.has(docSnap.id)) {
@@ -54,7 +66,6 @@ export const firebaseService = {
       }
     });
 
-    // 2. Update atau tambah data yang ada
     for (const user of users) {
       const userRef = doc(db, "users", user.id);
       batch.set(userRef, user);
@@ -92,7 +103,6 @@ export const firebaseService = {
     const snap = await getDocs(collection(db, "logs"));
     const batch = writeBatch(db);
 
-    // 1. Identifikasi ID Log yang harus dihapus
     const newLogIds = new Set(logs.map((l) => String(l.id)));
     snap.docs.forEach((docSnap) => {
       if (!newLogIds.has(docSnap.id)) {
@@ -100,7 +110,6 @@ export const firebaseService = {
       }
     });
 
-    // 2. Update atau simpan sisa log
     for (const log of logs) {
       batch.set(doc(db, "logs", String(log.id)), log);
     }
@@ -111,7 +120,6 @@ export const firebaseService = {
   async checkHealth(): Promise<boolean> {
     try {
       ensureInit();
-      // Tes sederhana dengan mengambil satu dokumen settings
       await getDoc(doc(db, "settings", "officeConfig"));
       return true;
     } catch {

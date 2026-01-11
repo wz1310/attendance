@@ -6,6 +6,7 @@ const DEFAULT_ENDPOINT = "https://c1jx4415-3000.asse.devtunnels.ms/api";
 export type StorageMode = "LOCAL" | "FIREBASE";
 
 export const getStorageMode = (): StorageMode => {
+  // Jika belum pernah diset, secara logis kita anggap LOCAL dulu sampai dicek oleh App.tsx
   return (localStorage.getItem("STORAGE_MODE") as StorageMode) || "LOCAL";
 };
 
@@ -27,14 +28,12 @@ const headers = {
 
 export const apiService = {
   async checkHealth(customUrl?: string): Promise<boolean> {
-    if (getStorageMode() === "FIREBASE" && !customUrl) {
-      return firebaseService.checkHealth();
-    }
     const targetUrl = customUrl || getApiBase();
     try {
+      // Pengecekan kesehatan server lokal
       const res = await fetch(`${targetUrl}/health`, {
         method: "GET",
-        signal: AbortSignal.timeout(4000),
+        signal: AbortSignal.timeout(3000), // Timeout cepat agar transisi ke Firebase tidak lama
       });
       return res.ok;
     } catch {
@@ -100,7 +99,6 @@ export const apiService = {
   },
 
   async saveEndpoint(endpoint: string): Promise<void> {
-    // Only relevant for local mode
     localStorage.setItem("SERVER_ENDPOINT", endpoint);
   },
 };

@@ -2,7 +2,15 @@ import React, { useState, useEffect } from "react";
 import { User, OfficeConfig, AttendanceLog, AppRoute } from "./types";
 import AdminPanel from "./components/AdminPanel";
 import UserPanel from "./components/UserPanel";
-import { apiService, getApiBase } from "./services/apiService";
+import {
+  apiService,
+  getStorageMode,
+  setStorageMode,
+} from "./services/apiService";
+import {
+  initFirebase,
+  DEFAULT_FIREBASE_CONFIG,
+} from "./services/firebaseService";
 
 const App: React.FC = () => {
   const [currentRoute, setCurrentRoute] = useState<AppRoute>(AppRoute.LOGIN);
@@ -15,6 +23,7 @@ const App: React.FC = () => {
   const [logs, setLogs] = useState<AttendanceLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isConnected, setIsConnected] = useState<boolean>(true);
+  const [activeStorage, setActiveStorage] = useState<string>("Detecting...");
 
   // Fungsi untuk memuat data
   const loadData = async () => {
@@ -30,24 +39,74 @@ const App: React.FC = () => {
       setLogs(fetchedLogs || []);
       setIsConnected(true);
     } catch (err) {
+      // Jika saat load data gagal, kita asumsikan koneksi bermasalah
       setIsConnected(false);
-    } finally {
-      setIsLoading(false);
+      throw err;
     }
   };
 
-  // Efek untuk Monitoring Koneksi
+  // Efek Inisialisasi dan Auto-Switch
   useEffect(() => {
-    loadData(); // Load awal
+    const bootApp = async () => {
+      setIsLoading(true);
+
+      // 1. Cek kesehatan Server Lokal
+      const isLocalHealthy = await apiService.checkHealth();
+
+      if (isLocalHealthy) {
+        // Jika Server Lokal Aktif, paksa mode ke LOCAL
+        setStorageMode("LOCAL");
+        setActiveStorage("Server Lokal");
+      } else {
+        // Jika Server Lokal MATI, beralih ke Firebase
+        console.warn(
+          "Local server unreachable, switching to Firebase Cloud fallback."
+        );
+        setStorageMode("FIREBASE");
+        setActiveStorage("Firebase Cloud");
+
+        // Pastikan Firebase terinisialisasi dengan config default
+        const savedFbConfig = localStorage.getItem("FIREBASE_CONFIG");
+        initFirebase(
+          savedFbConfig ? JSON.parse(savedFbConfig) : DEFAULT_FIREBASE_CONFIG
+        );
+      }
+
+      try {
+        await loadData();
+      } catch (e) {
+        console.error("Initial data load failed", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    bootApp();
+  }, []);
+
+  // Monitoring Koneksi berkala
+  useEffect(() => {
+    if (isLoading) return;
 
     const interval = setInterval(async () => {
       const healthy = await apiService.checkHealth();
-      setIsConnected(healthy);
-      if (healthy && users.length === 0) loadData(); // Re-try load jika baru tersambung
-    }, 5000);
+
+      // Jika mode saat ini LOCAL tapi server mati, coba beralih ke FIREBASE
+      if (!healthy && getStorageMode() === "LOCAL") {
+        setStorageMode("FIREBASE");
+        setActiveStorage("Firebase Cloud (Auto-failover)");
+        initFirebase(null); // Gunakan default
+        loadData();
+      }
+      // Sebaliknya, jika mode saat ini FIREBASE tapi server lokal kembali hidup,
+      // kita tetap di FIREBASE atau bisa beralih kembali jika diinginkan.
+      // Di sini kita pilih untuk update status koneksi saja agar tidak mengganggu sesi.
+
+      setIsConnected(getStorageMode() === "FIREBASE" ? true : healthy);
+    }, 10000);
 
     return () => clearInterval(interval);
-  }, [users.length]);
+  }, [isLoading]);
 
   const handleUpdateUsers = async (newUsers: User[]) => {
     try {
@@ -87,27 +146,30 @@ const App: React.FC = () => {
   };
 
   const ConnectionStatus = () => (
-    <div className="fixed top-4 right-4 z-[9999] flex items-center gap-2 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm border border-slate-100">
+    <div className="fixed top-4 right-4 z-[9999] flex items-center bg-white/80 backdrop-blur-md p-2 rounded-full shadow-sm border border-slate-100 group transition-all duration-300 hover:px-3 hover:py-1.5 cursor-help">
       <div
-        className={`w-2 h-2 rounded-full animate-pulse ${
+        className={`w-2 h-2 rounded-full animate-pulse flex-shrink-0 ${
           isConnected
             ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
             : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
         }`}
       ></div>
-      <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">
-        {isConnected ? "Connected" : "Offline"}
+      <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 max-w-0 overflow-hidden opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:ml-2 transition-all duration-500 whitespace-nowrap">
+        {isConnected ? `Connected: ${activeStorage}` : "Offline"}
       </span>
     </div>
   );
 
-  if (isLoading && isConnected) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           <p className="text-slate-400 font-black uppercase text-[9px] tracking-[0.3em]">
-            Smart Presence...
+            Syncing Database...
+          </p>
+          <p className="text-indigo-400 font-black uppercase text-[7px] tracking-widest mt-2">
+            {activeStorage}
           </p>
         </div>
       </div>
@@ -125,7 +187,7 @@ const App: React.FC = () => {
                 Presence
               </h1>
               <p className="text-slate-400 text-[9px] font-black mb-10 tracking-[0.2em] uppercase italic">
-                Smart System
+                Dual Storage System
               </p>
               <div className="space-y-3">
                 <button
@@ -141,11 +203,9 @@ const App: React.FC = () => {
                   Check-in
                 </button>
               </div>
-              {!isConnected && (
-                <p className="mt-4 text-[8px] text-red-500 font-bold uppercase tracking-widest animate-pulse">
-                  Server Unreachable - Local Only
-                </p>
-              )}
+              <p className="mt-4 text-[7px] text-slate-400 font-bold uppercase tracking-widest">
+                Active: {activeStorage}
+              </p>
             </div>
           </div>
         );
