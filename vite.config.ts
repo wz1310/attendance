@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  base: '/meet_pro/',
   server: {
     port: 5173,
     proxy: {

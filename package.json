@@ -1,5 +1,6 @@
 {
   "name": "smart-face-attendance",
+  "homepage": "https://wz1310.github.io/attendance",
   "version": "1.0.0",
   "description": "Sistem Absensi Wajah Terintegrasi Lokal",
   "main": "server.js",
@@ -7,7 +8,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node server.js"
+    "start": "node server.js",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@vladmandic/face-api": "^1.7.15",
