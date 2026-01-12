@@ -8,73 +8,48 @@ const app = express();
 const PORT = 3000;
 const DB_PATH = path.join(__dirname, "db");
 
-// Middleware Logging
-app.use((req, res, next) => {
-  console.log(
-    `[REQUEST] ${new Date().toLocaleTimeString()} - ${req.method} ${req.url}`
-  );
-  next();
-});
-
 app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-Tunnel-Skip-AntiPhishing-Page",
-    ],
-    credentials: true,
-  })
+  cors({ origin: "*", methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"] })
 );
-
 app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
-// Inisialisasi Database JSON
 async function initDB() {
   try {
     await fs.mkdir(DB_PATH, { recursive: true });
-    const files = ["users.json", "config.json", "logs.json", "koneksi.json"];
+    const files = [
+      "users.json",
+      "config.json",
+      "logs.json",
+      "leaves.json",
+      "feeds.json",
+    ];
     for (const file of files) {
       const filePath = path.join(DB_PATH, file);
       try {
         await fs.access(filePath);
       } catch {
-        let initialData = "[]";
-        if (file === "config.json") {
-          initialData = JSON.stringify({
-            latitude: -6.2,
-            longitude: 106.81,
-            maxDistance: 100,
-          });
-        } else if (file === "koneksi.json") {
-          initialData = JSON.stringify({
-            endpoint: "https://c1jx4415-3000.asse.devtunnels.ms/api",
-          });
-        }
+        let initialData =
+          file === "config.json"
+            ? JSON.stringify({
+                latitude: -6.2,
+                longitude: 106.81,
+                maxDistance: 100,
+              })
+            : "[]";
         await fs.writeFile(filePath, initialData);
-        console.log(`[INIT] Membuat database: ${file}`);
       }
     }
     console.log("✅ Database Lokal Siap");
   } catch (err) {
-    console.error("❌ Gagal inisialisasi:", err);
+    console.error("❌ Gagal:", err);
   }
 }
-
 initDB();
 
 async function readJSON(filename) {
-  try {
-    const data = await fs.readFile(path.join(DB_PATH, filename), "utf8");
-    return JSON.parse(data);
-  } catch (err) {
-    return file === "config.json" || file === "koneksi.json" ? {} : [];
-  }
+  const data = await fs.readFile(path.join(DB_PATH, filename), "utf8");
+  return JSON.parse(data);
 }
-
 async function writeJSON(filename, data) {
   await fs.writeFile(
     path.join(DB_PATH, filename),
@@ -82,66 +57,52 @@ async function writeJSON(filename, data) {
   );
 }
 
-// --- API ROUTES ---
-
-// ENDPOINT SETTINGS
-app.get("/api/endpoint", async (req, res) => {
-  const data = await readJSON("koneksi.json");
-  res.json(data);
-});
-
-app.post("/api/endpoint", async (req, res) => {
-  await writeJSON("koneksi.json", req.body);
-  res.json({ success: true });
-});
-
-// USERS
-app.get("/api/users", async (req, res) => {
-  const data = await readJSON("users.json");
-  res.json(data);
-});
-
+app.get("/api/users", async (req, res) =>
+  res.json(await readJSON("users.json"))
+);
 app.post("/api/users", async (req, res) => {
   await writeJSON("users.json", req.body);
   res.json({ success: true });
 });
-
-// CONFIG
-app.get("/api/config", async (req, res) => {
-  const data = await readJSON("config.json");
-  res.json(data);
-});
-
+app.get("/api/config", async (req, res) =>
+  res.json(await readJSON("config.json"))
+);
 app.post("/api/config", async (req, res) => {
   await writeJSON("config.json", req.body);
   res.json({ success: true });
 });
-
-// LOGS
-app.get("/api/logs", async (req, res) => {
-  const data = await readJSON("logs.json");
-  res.json(data);
-});
-
-app.post("/api/logs/update", async (req, res) => {
-  try {
-    await writeJSON("logs.json", req.body);
-    res.status(200).json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
+app.get("/api/logs", async (req, res) => res.json(await readJSON("logs.json")));
 app.post("/api/logs", async (req, res) => {
   const logs = await readJSON("logs.json");
   logs.unshift(req.body);
   await writeJSON("logs.json", logs);
   res.json({ success: true });
 });
-
-// Health check endpoint
-app.get("/api/health", (req, res) => res.json({ status: "ok" }));
-
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
+app.post("/api/logs/update", async (req, res) => {
+  await writeJSON("logs.json", req.body);
+  res.json({ success: true });
 });
+
+// LEAVES API
+app.get("/api/leaves", async (req, res) =>
+  res.json(await readJSON("leaves.json"))
+);
+app.post("/api/leaves/update", async (req, res) => {
+  await writeJSON("leaves.json", req.body);
+  res.json({ success: true });
+});
+
+// FEEDS API
+app.get("/api/feeds", async (req, res) => {
+  const feeds = await readJSON("feeds.json");
+  res.json(feeds);
+});
+app.post("/api/feeds", async (req, res) => {
+  const feeds = await readJSON("feeds.json");
+  feeds.unshift(req.body);
+  await writeJSON("feeds.json", feeds);
+  res.json({ success: true });
+});
+
+app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Server on port ${PORT}`));

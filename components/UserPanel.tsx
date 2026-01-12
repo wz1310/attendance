@@ -9,6 +9,7 @@ interface UserPanelProps {
   config: OfficeConfig;
   onAddLog: (log: AttendanceLog) => void;
   onBack: () => void;
+  onViewProfile?: (user: User) => void;
 }
 
 const UserPanel: React.FC<UserPanelProps> = ({
@@ -16,6 +17,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
   config,
   onAddLog,
   onBack,
+  onViewProfile,
 }) => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
@@ -152,7 +154,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
             className="absolute inset-0 bg-slate-950/60 backdrop-blur-md"
             onClick={() => setShowLoginError(false)}
           ></div>
-          <div className="bg-slate-800 rounded-[2rem] p-8 shadow-2xl relative w-full max-w-sm border border-white/5 animate-in zoom-in-95 duration-300">
+          <div className="bg-slate-800 rounded-[2rem] p-8 shadow-2xl relative w-full max-sm border border-white/5 animate-in zoom-in-95 duration-300">
             <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg
                 className="w-8 h-8 text-red-500 animate-pulse"
@@ -297,12 +299,22 @@ const UserPanel: React.FC<UserPanelProps> = ({
                       {selectedUser.employeeId}
                     </p>
                   </div>
-                  <button
-                    onClick={reset}
-                    className="ml-auto text-slate-400 hover:text-white text-[9px] uppercase font-black bg-white/5 px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    Log Out
-                  </button>
+                  <div className="ml-auto flex gap-2">
+                    <button
+                      onClick={() =>
+                        onViewProfile && onViewProfile(selectedUser)
+                      }
+                      className="text-white text-[9px] uppercase font-black bg-indigo-600/20 hover:bg-indigo-600/40 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition-colors"
+                    >
+                      Profil
+                    </button>
+                    <button
+                      onClick={reset}
+                      className="text-slate-400 hover:text-white text-[9px] uppercase font-black bg-white/5 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      Out
+                    </button>
+                  </div>
                 </div>
               )}
 

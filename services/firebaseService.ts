@@ -10,9 +10,15 @@ import {
   orderBy,
   writeBatch,
 } from "@firebase/firestore";
-import { User, OfficeConfig, AttendanceLog } from "../types";
+import {
+  User,
+  OfficeConfig,
+  AttendanceLog,
+  LeaveRequest,
+  FeedPost,
+} from "../types";
 
-// Konfigurasi Firebase Default (Hardcoded as requested)
+// Konfigurasi Firebase Default
 export const DEFAULT_FIREBASE_CONFIG = {
   apiKey: "AIzaSyB-Jxk7AxVGrkuxjTY314v3hFuwgtCpjgU",
   authDomain: "wz-absence.firebaseapp.com",
@@ -115,6 +121,44 @@ export const firebaseService = {
     }
 
     await batch.commit();
+  },
+
+  async getLeaveRequests(): Promise<LeaveRequest[]> {
+    ensureInit();
+    const q = query(collection(db, "leaves"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => d.data() as LeaveRequest);
+  },
+
+  async updateLeaveRequests(leaves: LeaveRequest[]): Promise<void> {
+    ensureInit();
+    const snap = await getDocs(collection(db, "leaves"));
+    const batch = writeBatch(db);
+
+    const newLeaveIds = new Set(leaves.map((l) => l.id));
+    snap.docs.forEach((docSnap) => {
+      if (!newLeaveIds.has(docSnap.id)) {
+        batch.delete(docSnap.ref);
+      }
+    });
+
+    for (const leave of leaves) {
+      batch.set(doc(db, "leaves", leave.id), leave);
+    }
+
+    await batch.commit();
+  },
+
+  async getFeeds(): Promise<FeedPost[]> {
+    ensureInit();
+    const q = query(collection(db, "feeds"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => d.data() as FeedPost);
+  },
+
+  async addFeed(post: FeedPost): Promise<void> {
+    ensureInit();
+    await setDoc(doc(db, "feeds", post.id), post);
   },
 
   async checkHealth(): Promise<boolean> {
