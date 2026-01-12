@@ -4,6 +4,7 @@ import {
   AttendanceLog,
   LeaveRequest,
   FeedPost,
+  DailyActivity,
 } from "../types";
 import { firebaseService } from "./firebaseService";
 
@@ -115,6 +116,22 @@ export const apiService = {
       method: "POST",
       headers,
       body: JSON.stringify(post),
+    });
+  },
+
+  // DAILY ACTIVITIES
+  async getActivities(): Promise<DailyActivity[]> {
+    if (getStorageMode() === "FIREBASE") return firebaseService.getActivities();
+    return (await fetch(`${getApiBase()}/activities`, { headers })).json();
+  },
+
+  async addActivity(activity: DailyActivity): Promise<void> {
+    if (getStorageMode() === "FIREBASE")
+      return firebaseService.addActivity(activity);
+    await fetch(`${getApiBase()}/activities`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(activity),
     });
   },
 

@@ -24,6 +24,24 @@ export interface FeedPost {
   createdAt: number;
 }
 
+export interface DailyActivity {
+  id: string;
+  userId: string;
+  userName: string;
+  task: string;
+  startTime: number;
+  endTime: number;
+  activityType: string;
+  stockCount?: number;
+  photo?: string;
+  location?: {
+    lat: number;
+    lng: number;
+    accuracy?: number;
+  };
+  createdAt: number;
+}
+
 export interface LeaveRequest {
   id: string;
   userId: string;
@@ -66,6 +84,7 @@ export enum AppRoute {
   ORG_STRUCTURE = "org_structure",
   PROFILE = "profile",
   FEEDS = "feeds",
+  DAILY_ACTIVITY = "daily_activity",
 }
 
 export interface VerificationResult {

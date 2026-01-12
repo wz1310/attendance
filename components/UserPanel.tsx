@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { User, OfficeConfig, AttendanceLog } from "../types";
+import { User, OfficeConfig, AttendanceLog, AppRoute } from "../types";
 import { verifyFace, loadModels } from "../services/faceApiService";
 import { getDistance, getCurrentPosition } from "../utils/geoUtils";
 import CameraCapture from "./CameraCapture";
@@ -10,6 +10,7 @@ interface UserPanelProps {
   onAddLog: (log: AttendanceLog) => void;
   onBack: () => void;
   onViewProfile?: (user: User) => void;
+  onLogin?: (user: User) => void; // Tambahkan callback onLogin
 }
 
 const UserPanel: React.FC<UserPanelProps> = ({
@@ -18,6 +19,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
   onAddLog,
   onBack,
   onViewProfile,
+  onLogin,
 }) => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
@@ -47,7 +49,6 @@ const UserPanel: React.FC<UserPanelProps> = ({
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Cari user berdasarkan Name ATAU Employee ID (NIK)
     const user = users.find(
       (u) =>
         (u.employeeId === loginId ||
@@ -60,6 +61,8 @@ const UserPanel: React.FC<UserPanelProps> = ({
       setStatus("idle");
       setFeedback("");
       setShowLoginError(false);
+      // Sinkronkan ke App.tsx
+      if (onLogin) onLogin(user);
     } else {
       setShowLoginError(true);
     }
@@ -130,6 +133,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
     setLoginId("");
     setLoginPassword("");
     setCurrentDistance(null);
+    if (onLogin) onLogin(null as any); // Reset active user di App.tsx
   };
 
   if (status === "loading_models") {
@@ -147,7 +151,6 @@ const UserPanel: React.FC<UserPanelProps> = ({
 
   return (
     <div className="min-h-screen bg-slate-900 text-white p-4 md:p-6 flex flex-col items-center">
-      {/* LOGIN ERROR WIDGET */}
       {showLoginError && (
         <div className="fixed inset-0 z-[5000] flex items-center justify-center p-4">
           <div
@@ -269,12 +272,6 @@ const UserPanel: React.FC<UserPanelProps> = ({
                 Masuk ke Absensi
               </button>
             </form>
-
-            <p className="text-center mt-8 text-slate-500 text-[8px] font-bold uppercase tracking-widest leading-relaxed">
-              Data login dikelola oleh Admin.
-              <br />
-              Lupa password? Hubungi HRD.
-            </p>
           </div>
         ) : (
           <div className="space-y-4 animate-in fade-in duration-500">
@@ -408,35 +405,6 @@ const UserPanel: React.FC<UserPanelProps> = ({
                 </div>
               )}
             </div>
-
-            {(status === "verifying" ||
-              status === "success" ||
-              status === "error") &&
-              capturedPhoto &&
-              selectedUser && (
-                <div className="grid grid-cols-2 gap-3 animate-in slide-in-from-bottom-2">
-                  <div className="bg-slate-800/50 p-2 rounded-xl border border-white/5">
-                    <p className="text-[7px] uppercase text-slate-500 mb-1.5 font-black tracking-widest">
-                      Master ID
-                    </p>
-                    <img
-                      src={selectedUser.photoBase64}
-                      alt=""
-                      className="w-full h-24 object-cover rounded-lg ring-1 ring-white/5"
-                    />
-                  </div>
-                  <div className="bg-slate-800/50 p-2 rounded-xl border border-white/5">
-                    <p className="text-[7px] uppercase text-slate-500 mb-1.5 font-black tracking-widest">
-                      Realtime Capture
-                    </p>
-                    <img
-                      src={capturedPhoto}
-                      alt=""
-                      className="w-full h-24 object-cover rounded-lg ring-1 ring-white/5"
-                    />
-                  </div>
-                </div>
-              )}
           </div>
         )}
       </div>

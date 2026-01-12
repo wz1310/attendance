@@ -16,6 +16,7 @@ import {
   AttendanceLog,
   LeaveRequest,
   FeedPost,
+  DailyActivity,
 } from "../types";
 
 // Konfigurasi Firebase Default
@@ -159,6 +160,18 @@ export const firebaseService = {
   async addFeed(post: FeedPost): Promise<void> {
     ensureInit();
     await setDoc(doc(db, "feeds", post.id), post);
+  },
+
+  async getActivities(): Promise<DailyActivity[]> {
+    ensureInit();
+    const q = query(collection(db, "activities"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => d.data() as DailyActivity);
+  },
+
+  async addActivity(activity: DailyActivity): Promise<void> {
+    ensureInit();
+    await setDoc(doc(db, "activities", activity.id), activity);
   },
 
   async checkHealth(): Promise<boolean> {

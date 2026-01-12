@@ -22,6 +22,7 @@ async function initDB() {
       "logs.json",
       "leaves.json",
       "feeds.json",
+      "activities.json",
     ];
     for (const file of files) {
       const filePath = path.join(DB_PATH, file);
@@ -101,6 +102,18 @@ app.post("/api/feeds", async (req, res) => {
   const feeds = await readJSON("feeds.json");
   feeds.unshift(req.body);
   await writeJSON("feeds.json", feeds);
+  res.json({ success: true });
+});
+
+// ACTIVITIES API
+app.get("/api/activities", async (req, res) => {
+  const activities = await readJSON("activities.json");
+  res.json(activities);
+});
+app.post("/api/activities", async (req, res) => {
+  const activities = await readJSON("activities.json");
+  activities.unshift(req.body);
+  await writeJSON("activities.json", activities);
   res.json({ success: true });
 });
 

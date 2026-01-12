@@ -6,6 +6,7 @@ import {
   AppRoute,
   LeaveRequest,
   FeedPost,
+  DailyActivity,
 } from "./types";
 import AdminPanel from "./components/AdminPanel";
 import UserPanel from "./components/UserPanel";
@@ -13,6 +14,7 @@ import LeavePanel from "./components/LeavePanel";
 import OrgChart from "./components/OrgChart";
 import UserProfile from "./components/UserProfile";
 import Feeds from "./components/Feeds";
+import ActivityPanel from "./components/ActivityPanel";
 import {
   apiService,
   getStorageMode,
@@ -34,6 +36,7 @@ const App: React.FC = () => {
   const [logs, setLogs] = useState<AttendanceLog[]>([]);
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [feeds, setFeeds] = useState<FeedPost[]>([]);
+  const [activities, setActivities] = useState<DailyActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isConnected, setIsConnected] = useState<boolean>(true);
   const [activeStorage, setActiveStorage] = useState<string>("Detecting...");
@@ -52,14 +55,14 @@ const App: React.FC = () => {
         fetchedLogs,
         fetchedLeaves,
         fetchedFeeds,
+        fetchedActivities,
       ] = await Promise.all([
         apiService.getUsers(),
         apiService.getConfig(),
         apiService.getLogs(),
-        apiService.getLeaveRequests
-          ? apiService.getLeaveRequests()
-          : Promise.resolve([]),
-        apiService.getFeeds ? apiService.getFeeds() : Promise.resolve([]),
+        apiService.getLeaveRequests(),
+        apiService.getFeeds(),
+        apiService.getActivities(),
       ]);
 
       setUsers(fetchedUsers || []);
@@ -67,6 +70,7 @@ const App: React.FC = () => {
       setLogs(fetchedLogs || []);
       setLeaveRequests(fetchedLeaves || []);
       setFeeds(fetchedFeeds || []);
+      setActivities(fetchedActivities || []);
       setIsConnected(true);
     } catch (err) {
       setIsConnected(false);
@@ -173,6 +177,15 @@ const App: React.FC = () => {
     }
   };
 
+  const handleAddActivity = async (activity: DailyActivity) => {
+    try {
+      await apiService.addActivity(activity);
+      setActivities((prev) => [activity, ...prev]);
+    } catch (err) {
+      alert("Gagal menyimpan aktivitas.");
+    }
+  };
+
   const handleRefreshFeeds = async () => {
     try {
       const fetchedFeeds = await apiService.getFeeds();
@@ -255,7 +268,14 @@ const App: React.FC = () => {
             Home
           </span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-slate-400">
+        <button
+          onClick={() => setCurrentRoute(AppRoute.DAILY_ACTIVITY)}
+          className={`flex flex-col items-center gap-1 ${
+            currentRoute === AppRoute.DAILY_ACTIVITY
+              ? "text-indigo-600"
+              : "text-slate-400"
+          }`}
+        >
           <svg
             className="w-5 h-5"
             fill="none"
@@ -266,11 +286,11 @@ const App: React.FC = () => {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth="2.5"
-              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
           <span className="text-[9px] font-black uppercase tracking-widest">
-            Features
+            Daily
           </span>
         </button>
         <button
@@ -296,24 +316,6 @@ const App: React.FC = () => {
           </svg>
           <span className="text-[9px] font-black uppercase tracking-widest">
             Feeds
-          </span>
-        </button>
-        <button className="flex flex-col items-center gap-1 text-slate-400">
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.5"
-              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-            />
-          </svg>
-          <span className="text-[9px] font-black uppercase tracking-widest">
-            Work
           </span>
         </button>
         <button
@@ -528,6 +530,7 @@ const App: React.FC = () => {
               config={officeConfig}
               logs={logs}
               leaveRequests={leaveRequests}
+              activities={activities}
               onUpdateUsers={handleUpdateUsers}
               onUpdateConfig={handleUpdateConfig}
               onUpdateLogs={handleUpdateLogs}
@@ -549,7 +552,24 @@ const App: React.FC = () => {
                 setActiveUser(user);
                 setCurrentRoute(AppRoute.PROFILE);
               }}
+              onLogin={(user) => setActiveUser(user)} // Sinkronkan user login
             />
+            <BottomNav />
+          </>
+        );
+      case AppRoute.DAILY_ACTIVITY:
+        return (
+          <>
+            <ConnectionStatus />
+            {activeUser && (
+              <ActivityPanel
+                user={activeUser}
+                allUsers={users}
+                activities={activities}
+                onAddActivity={handleAddActivity}
+                onBack={() => setCurrentRoute(AppRoute.USER_PANEL)}
+              />
+            )}
             <BottomNav />
           </>
         );
