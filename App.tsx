@@ -186,6 +186,15 @@ const App: React.FC = () => {
     }
   };
 
+  const handleUpdateActivities = async (newActivities: DailyActivity[]) => {
+    try {
+      await apiService.updateActivities(newActivities);
+      setActivities([...newActivities]);
+    } catch (err) {
+      alert("Gagal memperbarui data aktivitas.");
+    }
+  };
+
   const handleRefreshFeeds = async () => {
     try {
       const fetchedFeeds = await apiService.getFeeds();
@@ -241,100 +250,111 @@ const App: React.FC = () => {
     )
       return null;
 
-    return (
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-white border-t border-slate-100 px-6 py-4 flex items-center justify-between z-50">
-        <button
-          onClick={() => setCurrentRoute(AppRoute.USER_PANEL)}
-          className={`flex flex-col items-center gap-1 ${
-            currentRoute === AppRoute.USER_PANEL
-              ? "text-indigo-600"
-              : "text-slate-400"
-          }`}
-        >
+    const navItems = [
+      {
+        id: AppRoute.USER_PANEL,
+        label: "HOME",
+        icon: (active: boolean) => (
           <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
+            className={`w-5 h-5 ${active ? "text-white" : "text-slate-400"}`}
+            fill="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.5"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-            />
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
           </svg>
-          <span className="text-[9px] font-black uppercase tracking-widest">
-            Home
-          </span>
-        </button>
-        <button
-          onClick={() => setCurrentRoute(AppRoute.DAILY_ACTIVITY)}
-          className={`flex flex-col items-center gap-1 ${
-            currentRoute === AppRoute.DAILY_ACTIVITY
-              ? "text-indigo-600"
-              : "text-slate-400"
-          }`}
-        >
+        ),
+      },
+      {
+        id: AppRoute.DAILY_ACTIVITY,
+        label: "DAILY",
+        icon: (active: boolean) => (
           <svg
-            className="w-5 h-5"
+            className={`w-5 h-5 ${active ? "text-white" : "text-slate-400"}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            strokeWidth="2.5"
           >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth="2.5"
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <span className="text-[9px] font-black uppercase tracking-widest">
-            Daily
-          </span>
-        </button>
-        <button
-          onClick={() => setCurrentRoute(AppRoute.FEEDS)}
-          className={`flex flex-col items-center gap-1 ${
-            currentRoute === AppRoute.FEEDS
-              ? "text-indigo-600"
-              : "text-slate-400"
-          }`}
-        >
+        ),
+      },
+      {
+        id: AppRoute.FEEDS,
+        label: "FEEDS",
+        icon: (active: boolean) => (
           <svg
-            className="w-5 h-5"
+            className={`w-5 h-5 ${active ? "text-white" : "text-slate-400"}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            strokeWidth="2.5"
           >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth="2.5"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
             />
           </svg>
-          <span className="text-[9px] font-black uppercase tracking-widest">
-            Feeds
-          </span>
-        </button>
-        <button
-          onClick={() => setCurrentRoute(AppRoute.PROFILE)}
-          className={`flex flex-col items-center gap-1 ${
-            currentRoute === AppRoute.PROFILE
-              ? "text-indigo-600"
-              : "text-slate-400"
-          }`}
-        >
+        ),
+      },
+      {
+        id: AppRoute.PROFILE,
+        label: "PROFILE",
+        icon: (active: boolean) => (
           <img
-            src={activeUser ? activeUser.photoBase64 : ""}
-            className="w-5 h-5 rounded-full object-cover ring-2 ring-transparent"
+            src={activeUser?.photoBase64 || ""}
+            className={`w-6 h-6 rounded-full object-cover ${
+              active ? "ring-2 ring-white" : ""
+            }`}
             alt=""
           />
-          <span className="text-[9px] font-black uppercase tracking-widest">
-            Profile
-          </span>
-        </button>
+        ),
+      },
+    ];
+
+    return (
+      <div className="fixed bottom-0 left-0 w-full h-24 group z-50 pointer-events-none">
+        {/* Trigger Zone / Hit Box at the very bottom */}
+        <div className="absolute bottom-0 left-0 w-full h-12 pointer-events-auto"></div>
+
+        {/* The Actual Nav Bar - Hidden by default, slides up on hover/active */}
+        <div className="absolute bottom-0 left-0 w-full bg-white border-t border-slate-50 px-2 py-4 flex items-center justify-around shadow-[0_-15px_40px_rgba(0,0,0,0.06)] pb-8 transform translate-y-[85%] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] pointer-events-auto">
+          {navItems.map((item) => {
+            const isActive = currentRoute === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setCurrentRoute(item.id)}
+                className="flex flex-col items-center gap-1.5 transition-all active:scale-90"
+              >
+                <div
+                  className={`w-11 h-11 flex items-center justify-center rounded-full transition-all duration-300 ${
+                    isActive
+                      ? "bg-indigo-600 shadow-lg shadow-indigo-100"
+                      : "bg-transparent"
+                  }`}
+                >
+                  {item.icon(isActive)}
+                </div>
+                <span
+                  className={`text-[9px] font-black uppercase tracking-widest ${
+                    isActive ? "text-indigo-600" : "text-slate-400"
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Floating Indicator Handle - hint for the user that a menu exists */}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-slate-300 rounded-full opacity-40 group-hover:opacity-0 transition-opacity duration-300"></div>
       </div>
     );
   };
@@ -552,7 +572,7 @@ const App: React.FC = () => {
                 setActiveUser(user);
                 setCurrentRoute(AppRoute.PROFILE);
               }}
-              onLogin={(user) => setActiveUser(user)} // Sinkronkan user login
+              onLogin={(user) => setActiveUser(user)}
             />
             <BottomNav />
           </>
@@ -567,6 +587,7 @@ const App: React.FC = () => {
                 allUsers={users}
                 activities={activities}
                 onAddActivity={handleAddActivity}
+                onUpdateActivities={handleUpdateActivities}
                 onBack={() => setCurrentRoute(AppRoute.USER_PANEL)}
               />
             )}
@@ -599,6 +620,7 @@ const App: React.FC = () => {
                 posts={feeds}
                 onAddPost={handleAddFeed}
                 onRefresh={handleRefreshFeeds}
+                onBack={() => setCurrentRoute(AppRoute.USER_PANEL)}
               />
             )}
             <BottomNav />
@@ -613,7 +635,7 @@ const App: React.FC = () => {
                 user={activeUser}
                 leaveRequests={leaveRequests}
                 attendanceLogs={logs}
-                onBack={() => setCurrentRoute(AppRoute.LOGIN)}
+                onBack={() => setCurrentRoute(AppRoute.USER_PANEL)}
               />
             )}
             <BottomNav />

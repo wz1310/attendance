@@ -116,6 +116,11 @@ app.post("/api/activities", async (req, res) => {
   await writeJSON("activities.json", activities);
   res.json({ success: true });
 });
+// Update Activities API (for Deletion or Batch Update)
+app.post("/api/activities/update", async (req, res) => {
+  await writeJSON("activities.json", req.body);
+  res.json({ success: true });
+});
 
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Server on port ${PORT}`));

@@ -174,6 +174,25 @@ export const firebaseService = {
     await setDoc(doc(db, "activities", activity.id), activity);
   },
 
+  async updateActivities(activities: DailyActivity[]): Promise<void> {
+    ensureInit();
+    const snap = await getDocs(collection(db, "activities"));
+    const batch = writeBatch(db);
+
+    const newActivityIds = new Set(activities.map((a) => a.id));
+    snap.docs.forEach((docSnap) => {
+      if (!newActivityIds.has(docSnap.id)) {
+        batch.delete(docSnap.ref);
+      }
+    });
+
+    for (const act of activities) {
+      batch.set(doc(db, "activities", act.id), act);
+    }
+
+    await batch.commit();
+  },
+
   async checkHealth(): Promise<boolean> {
     try {
       ensureInit();

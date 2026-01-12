@@ -68,6 +68,7 @@ export const apiService = {
     return (await fetch(`${getApiBase()}/logs`, { headers })).json();
   },
 
+  // FIXED: Corrected template literal backtick closure
   async addLog(log: AttendanceLog): Promise<void> {
     if (getStorageMode() === "FIREBASE") return firebaseService.addLog(log);
     await fetch(`${getApiBase()}/logs`, {
@@ -132,6 +133,16 @@ export const apiService = {
       method: "POST",
       headers,
       body: JSON.stringify(activity),
+    });
+  },
+
+  async updateActivities(activities: DailyActivity[]): Promise<void> {
+    if (getStorageMode() === "FIREBASE")
+      return firebaseService.updateActivities(activities);
+    await fetch(`${getApiBase()}/activities/update`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(activities),
     });
   },
 
