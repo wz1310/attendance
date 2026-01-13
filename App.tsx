@@ -365,24 +365,25 @@ const App: React.FC = () => {
         return (
           <div className="min-h-screen flex items-center justify-center p-4 bg-[#F8F9FA]">
             <ConnectionStatus />
-            <div className="bg-white p-12 md:p-16 rounded-[3rem] shadow-2xl w-full max-sm border border-slate-100 text-center relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1.5 bg-indigo-600"></div>
+            {/* Box login diperkecil (percekil) khusus tampilan web (md:max-w-[320px] dan md:p-10) */}
+            <div className="bg-white p-10 md:p-10 rounded-[2.5rem] md:rounded-[3rem] shadow-2xl w-full max-w-[360px] md:max-w-[320px] border border-slate-100 text-center relative overflow-hidden animate-in fade-in zoom-in-95 duration-700">
+              <div className="absolute top-0 left-0 w-full h-1 bg-indigo-600"></div>
 
-              <h1 className="text-3xl font-black text-slate-800 mb-2 tracking-tighter uppercase">
+              <h1 className="text-2xl md:text-3xl font-black text-slate-800 mb-1.5 tracking-tighter uppercase">
                 HR SYSTEM
               </h1>
-              <p className="text-slate-400 text-[10px] font-black mb-12 tracking-[0.3em] uppercase opacity-50">
+              <p className="text-slate-400 text-[9px] font-black mb-10 tracking-[0.2em] uppercase opacity-50">
                 Unified Enterprise Solution
               </p>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3.5">
                 <button
                   onClick={() => setCurrentRoute(AppRoute.ADMIN_LOGIN)}
-                  className="col-span-1 py-6 bg-white border-2 border-slate-100 hover:border-indigo-200 hover:bg-slate-50 rounded-3xl shadow-sm transition-all active:scale-95 group"
+                  className="col-span-1 py-5 bg-white border-2 border-slate-100 hover:border-indigo-200 hover:bg-slate-50 rounded-2xl md:rounded-3xl shadow-sm transition-all active:scale-95 group"
                 >
-                  <div className="text-indigo-600 mb-2 flex justify-center">
+                  <div className="text-indigo-600 mb-1.5 flex justify-center">
                     <svg
-                      className="w-6 h-6"
+                      className="w-5 h-5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -395,17 +396,17 @@ const App: React.FC = () => {
                       />
                     </svg>
                   </div>
-                  <span className="font-black uppercase tracking-widest text-[10px] text-slate-700">
+                  <span className="font-black uppercase tracking-widest text-[9px] text-slate-700">
                     Admin Portal
                   </span>
                 </button>
                 <button
                   onClick={() => setCurrentRoute(AppRoute.LEAVE_PANEL)}
-                  className="col-span-1 py-6 bg-white border-2 border-slate-100 hover:border-indigo-200 hover:bg-slate-50 rounded-3xl shadow-sm transition-all active:scale-95 group"
+                  className="col-span-1 py-5 bg-white border-2 border-slate-100 hover:border-indigo-200 hover:bg-slate-50 rounded-2xl md:rounded-3xl shadow-sm transition-all active:scale-95 group"
                 >
-                  <div className="text-indigo-600 mb-2 flex justify-center">
+                  <div className="text-indigo-600 mb-1.5 flex justify-center">
                     <svg
-                      className="w-6 h-6"
+                      className="w-5 h-5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -418,16 +419,16 @@ const App: React.FC = () => {
                       />
                     </svg>
                   </div>
-                  <span className="font-black uppercase tracking-widest text-[10px] text-slate-700">
+                  <span className="font-black uppercase tracking-widest text-[9px] text-slate-700">
                     Pengajuan
                   </span>
                 </button>
                 <button
                   onClick={() => setCurrentRoute(AppRoute.USER_PANEL)}
-                  className="col-span-2 py-5 bg-indigo-600 text-white rounded-3xl shadow-xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-3"
+                  className="col-span-2 py-4.5 bg-indigo-600 text-white rounded-2xl md:rounded-3xl shadow-xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-2.5"
                 >
                   <svg
-                    className="w-5 h-5"
+                    className="w-4.5 h-4.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -439,17 +440,17 @@ const App: React.FC = () => {
                       d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013-3h7a3 3 0 013 3v1"
                     />
                   </svg>
-                  <span className="font-black uppercase tracking-widest text-[11px]">
+                  <span className="font-black uppercase tracking-widest text-[10px]">
                     Check-In Presence
                   </span>
                 </button>
               </div>
 
-              <div className="mt-12 flex flex-col items-center gap-1">
-                <p className="text-[8px] text-slate-400 font-black uppercase tracking-[0.4em]">
+              <div className="mt-10 flex flex-col items-center gap-0.5">
+                <p className="text-[7px] text-slate-400 font-black uppercase tracking-[0.4em]">
                   Active Engine
                 </p>
-                <p className="text-[10px] text-indigo-500 font-black uppercase tracking-widest">
+                <p className="text-[9px] text-indigo-500 font-black uppercase tracking-widest">
                   {activeStorage}
                 </p>
               </div>
@@ -461,7 +462,7 @@ const App: React.FC = () => {
         return (
           <div className="min-h-screen flex items-center justify-center p-4 bg-slate-900">
             <ConnectionStatus />
-            <div className="bg-slate-800 p-8 rounded-[2.5rem] shadow-2xl w-full max-sm border border-white/5 animate-in zoom-in-95">
+            <div className="bg-slate-800 p-8 rounded-[2.5rem] shadow-2xl w-full max-w-[360px] md:max-w-[320px] border border-white/5 animate-in zoom-in-95">
               <button
                 onClick={() => {
                   setCurrentRoute(AppRoute.LOGIN);
