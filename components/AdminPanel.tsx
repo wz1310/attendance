@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   User,
   OfficeConfig,
@@ -57,6 +57,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [groupMode, setGroupMode] = useState<GroupMode>("none");
   const [isGroupMenuOpen, setIsGroupMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Registration States
   const [isRegistering, setIsRegistering] = useState(false);
@@ -257,8 +258,227 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
     else setShowFaceError(true);
   };
 
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+
+  const menuItems = [
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "logs",
+      label: "Attendance Logs",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "leaves",
+      label: `Leaves (${stats.pendingLeaves})`,
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "activities",
+      label: "Daily Activities",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "users",
+      label: "User Management",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "organization",
+      label: "Organization Chart",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "settings",
+      label: "System Settings",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+        </svg>
+      ),
+    },
+  ];
+
   return (
     <div className="admin-root">
+      {/* MENU DRAWER (Works on all screens) */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[5000] animate-in fade-in duration-300">
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={toggleMobileMenu}
+          ></div>
+          <div className="absolute top-0 left-0 bottom-0 w-[280px] bg-white shadow-2xl animate-in slide-in-from-left duration-500 overflow-y-auto">
+            <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">
+                  Menu
+                </h3>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                  Admin Portal Nav
+                </p>
+              </div>
+              <button
+                onClick={toggleMobileMenu}
+                className="p-2 hover:bg-slate-50 rounded-full text-slate-400"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4 space-y-2">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveTab(item.id as any);
+                    toggleMobileMenu();
+                  }}
+                  className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all ${
+                    activeTab === item.id
+                      ? "bg-indigo-600 text-white shadow-xl shadow-indigo-100"
+                      : "text-slate-500 hover:bg-slate-50"
+                  }`}
+                >
+                  <span
+                    className={`${
+                      activeTab === item.id ? "text-white" : "text-slate-400"
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+                  <span className="text-[11px] font-black uppercase tracking-widest">
+                    {item.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <div className="mt-auto p-8 border-t border-slate-50">
+              <button
+                onClick={onBack}
+                className="w-full py-4 border border-slate-100 rounded-2xl text-[9px] font-black uppercase text-slate-400 tracking-widest"
+              >
+                Exit Portal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ERROR & FEEDBACK MODALS */}
       {showFaceError && (
         <div className="fixed inset-0 z-[6000] flex items-center justify-center p-4">
@@ -266,7 +486,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
             onClick={() => setShowFaceError(false)}
           ></div>
-          <div className="bg-white rounded-[2.5rem] p-8 shadow-2xl relative w-full max-w-sm border border-indigo-50 animate-in zoom-in-95 duration-300 text-center">
+          <div className="bg-white rounded-[2.5rem] p-8 shadow-2xl relative w-full max-sm border border-indigo-50 animate-in zoom-in-95 duration-300 text-center">
             <h3 className="text-xl font-black text-slate-800 uppercase mb-2">
               Wajah Tidak Dikenali
             </h3>
@@ -325,14 +545,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
       )}
 
       <header className="admin-header">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-4 w-full h-full">
           <div className="flex items-center gap-4">
             <button
-              onClick={onBack}
-              className="p-1.5 hover:bg-slate-100 rounded-full"
+              onClick={toggleMobileMenu}
+              className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-600 active:scale-95 transition-all"
             >
               <svg
-                className="w-5 h-5 text-slate-600"
+                className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -340,59 +560,53 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  strokeWidth="2.5"
+                  d="M4 6h16M4 12h16M4 18h16"
                 />
               </svg>
             </button>
             <div>
-              <h2 className="text-sm md:text-lg font-bold text-slate-800 leading-tight">
+              <h2 className="text-lg font-black text-slate-800 tracking-tighter uppercase leading-none">
                 Admin Portal
               </h2>
-              <div className="admin-tab-group no-scrollbar">
-                {[
-                  "dashboard",
-                  "logs",
-                  "leaves",
-                  "activities",
-                  "users",
-                  "organization",
-                  "settings",
-                ].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab as any)}
-                    className={`admin-tab-btn ${
-                      activeTab === tab ? "active" : "inactive"
-                    }`}
-                  >
-                    {tab === "leaves" ? `Leaves (${stats.pendingLeaves})` : tab}
-                  </button>
-                ))}
-              </div>
+              <p className="text-[9px] font-black text-indigo-600 uppercase tracking-widest hidden md:block mt-1">
+                Active Tab: {menuItems.find((m) => m.id === activeTab)?.label}
+              </p>
             </div>
           </div>
-          <div className="admin-search-box">
-            <input
-              type="text"
-              placeholder="Cari..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="admin-input"
-            />
-            <svg
-              className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+
+          <div className="flex-1 max-w-md hidden md:block">
+            <div className="admin-search-box">
+              <input
+                type="text"
+                placeholder="Search data..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="admin-input"
               />
-            </svg>
+              <svg
+                className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100">
+              <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-pulse"></div>
+              <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">
+                {users.length} Users
+              </span>
+            </div>
           </div>
         </div>
       </header>
@@ -484,7 +698,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
             ].map((s, i) => (
               <div
                 key={i}
-                className="bg-white p-6 rounded-2xl border shadow-sm text-center"
+                className="bg-white p-6 rounded-2xl border shadow-sm text-center animate-in zoom-in-95 duration-500"
+                style={{ animationDelay: `${i * 50}ms` }}
               >
                 <div
                   className={`flex justify-center mb-2 text-${s.c} opacity-40`}

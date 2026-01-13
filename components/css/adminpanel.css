@@ -22,78 +22,41 @@
 .admin-header {
   background-color: white;
   border-bottom: 1px solid #e2e8f0;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
   position: sticky;
   top: 0;
   z-index: 100;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  height: 80px;
 }
 
 @media (min-width: 768px) {
   .admin-header {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
   }
-}
-
-/* Navigation & Tabs */
-.admin-tab-group {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 0.125rem;
-  overflow-x: auto;
-}
-
-.admin-tab-btn {
-  text-transform: uppercase;
-  font-weight: 900;
-  letter-spacing: 0.025em;
-  white-space: nowrap;
-  font-size: 9px;
-  transition: color 0.2s;
-}
-
-@media (min-width: 768px) {
-  .admin-tab-btn {
-    font-size: 11px;
-  }
-}
-
-.admin-tab-btn.active {
-  color: #4f46e5;
-}
-
-.admin-tab-btn.inactive {
-  color: #94a3b8;
 }
 
 /* Search & Actions */
 .admin-search-box {
   position: relative;
-  flex: 1;
-}
-
-@media (min-width: 768px) {
-  .admin-search-box {
-    width: 16rem;
-  }
 }
 
 .admin-input {
   width: 100%;
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  padding: 0.375rem 1rem 0.375rem 2rem;
+  border-radius: 1rem;
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
   font-size: 0.75rem;
   outline: none;
-  transition: ring 0.2s;
+  transition: all 0.2s;
 }
 
 .admin-input:focus {
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.05);
+  background-color: white;
 }
 
 /* Table Styles */
@@ -144,35 +107,7 @@
   }
 }
 
-/* Specific Formatting for Time */
-.log-time-display {
-  color: #64748b;
-  white-space: nowrap;
-  font-size: 9px;
-}
-
-@media (min-width: 768px) {
-  .log-time-display {
-    font-size: 12px;
-  }
-}
-
-.log-time-bold {
-  font-weight: 900;
-  color: #334155;
-}
-
-.log-time-separator {
-  font-weight: 400;
-  opacity: 0.4;
-  margin: 0 0.25rem;
-}
-
-.log-date-normal {
-  font-weight: 400;
-}
-
-/* Tooltip & Icons */
+/* GPS Icon & Tooltip */
 .gps-icon-wrapper {
   position: relative;
   display: inline-flex;
@@ -192,48 +127,11 @@
   color: #6366f1;
 }
 
-.tooltip-box {
-  position: absolute;
-  bottom: 100%;
-  margin-bottom: 0.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  display: none;
-  z-index: 100;
-}
-
-.gps-icon-wrapper:hover .tooltip-box {
-  display: block;
-}
-
-.tooltip-content {
-  background-color: #1e293b;
-  color: white;
-  font-size: 8px;
-  font-weight: 900;
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  white-space: nowrap;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.tooltip-arrow {
-  width: 0.375rem;
-  height: 0.375rem;
-  background-color: #1e293b;
-  transform: rotate(45deg);
-  position: absolute;
-  bottom: -0.125rem;
-  left: 50%;
-  transform: translateX(-50%) rotate(45deg);
-}
-
 /* Modals Overlay */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  z-index: 6000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -249,8 +147,8 @@
 
 .modal-card {
   background-color: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
+  border-radius: 2.5rem;
+  padding: 2rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   position: relative;
   width: 100%;
@@ -259,20 +157,28 @@
 }
 
 /* Animations */
-@keyframes scan {
-  0% {
-    transform: translateY(0);
-    opacity: 0;
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
   }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(320px);
-    opacity: 0;
+  to {
+    transform: translateX(0);
   }
 }
 
-.scan-animation {
-  animation: scan 2s linear infinite;
+.slide-in-from-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
 }
